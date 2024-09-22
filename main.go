@@ -1,50 +1,67 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
+	"Go_REST_Kafka/enrich"
+	"Go_REST_Kafka/internal/config"
+	"Go_REST_Kafka/kafka"
+	"Go_REST_Kafka/models"
+	"Go_REST_Kafka/postgres"
 	"fmt"
-	"log"
-	"os"
-
-	"github.com/segmentio/kafka-go"
 )
 
 func main() {
-	// Подключение к Kafka
-	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{"localhost:9092"},
-		Topic:   "users",
-		GroupID: "data_enrichment_group",
-	})
+	cfg := config.LoadConfig()
 
-	// Подключение к PostgreSQL
-	db, err := ConnectDatabase(os.Getenv("DATABASE_URL"))
-	if err != nil {
-		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
-	}
+	postgres.InitDB(cfg.PostgresDSN)
 
-	for {
-		m, err := r.ReadMessage(context.Background())
+	msgChan := make(chan *models.User)
+
+	go kafka.ConsumeMessages(cfg.KafkaBrokers, cfg.InputTopic, msgChan)
+
+	for user := range msgChan {
+		enrichedUser, err := enrich.EnrichUser(user)
 		if err != nil {
-			break
-		}
-
-		// Десериализация входящих данных
-		var user User
-		if err := json.Unmarshal(m.Value, &user); err != nil {
-			log.Printf("Не удалось десериализовать сообщение: %v", err)
+			fmt.Println("Error enriching user:", err)
 			continue
 		}
 
-		// Обогащение данных через REST API
-		enrichedUser := enricData(user)
-		db.Save(enrichedUser)
-
-		fmt.Printf("Сохранен пользователь: %+v\n", enrichedUser)
+		kafka.ProduceMessage(cfg.KafkaBrokers, cfg.OutputTopic, enrichedUser)
 	}
-
-	if err := r.Close(); err != nil {
-		log.Fatal("Не удалось закрыть ридер:", err)
-	}
+	// Настройки Kafka
+	//brokers := []string{"localhost:9092"} // Укажите адреса ваших брокеров
+	//topic := "InputTopic"                 // Укажите имя вашего топика
+	//
+	//// Создание писателя Kafka
+	//writer := kafka.NewWriter(kafka.WriterConfig{
+	//	Brokers: brokers,
+	//	Topic:   topic,
+	//})
+	//
+	//// Пример JSON-данных
+	//users := []map[string]interface{}{
+	//	{"id": 1, "first_name": "madara"},
+	//	{"id": 2, "first_name": "valadimir"},
+	//	{"id": 3, "first_name": "roma"},
+	//}
+	//
+	//for _, user := range users {
+	//	userData, err := json.Marshal(user)
+	//	if err != nil {
+	//		log.Fatalf("failed to marshal user data: %v", err)
+	//	}
+	//
+	//	err = writer.WriteMessages(context.Background(),
+	//		kafka.Message{
+	//			Value: userData,
+	//		},
+	//	)
+	//	if err != nil {
+	//		log.Fatalf("failed to write message: %v", err)
+	//	}
+	//	log.Printf("Message written to Kafka: %s", userData)
+	//}
+	//
+	//if err := writer.Close(); err != nil {
+	//	log.Fatalf("failed to close writer: %v", err)
+	//}
 }
