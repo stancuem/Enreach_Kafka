@@ -27,17 +27,14 @@ func main() {
 
 		kafka.ProduceMessage(cfg.KafkaBrokers, cfg.OutputTopic, enrichedUser)
 	}
-	// Настройки Kafka
-	//brokers := []string{"localhost:9092"} // Укажите адреса ваших брокеров
-	//topic := "InputTopic"                 // Укажите имя вашего топика
+	//brokers := []string{"localhost:9092"} 
+	//topic := "InputTopic"                
 	//
-	//// Создание писателя Kafka
 	//writer := kafka.NewWriter(kafka.WriterConfig{
 	//	Brokers: brokers,
 	//	Topic:   topic,
 	//})
 	//
-	//// Пример JSON-данных
 	//users := []map[string]interface{}{
 	//	{"id": 1, "first_name": "madara"},
 	//	{"id": 2, "first_name": "valadimir"},
