@@ -1,6 +1,6 @@
 # Kafka Data Enrichment Service
 The Kafka Data Enrichment Service is a Go application designed to enhance data by retrieving messages from a Kafka topic, enriching them with additional information from a PostgreSQL database, and then writing the enriched data back to a new Kafka topic.
-Key features include:
+###Key features include:
 Kafka Consumer: Efficiently consumes messages from an input Kafka topic.
 PostgreSQL Integration: Connects to a PostgreSQL database to fetch supplementary user information.
 Data Enrichment Logic: Processes incoming data by merging it with relevant database records.
