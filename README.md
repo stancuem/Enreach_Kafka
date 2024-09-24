@@ -5,5 +5,6 @@
 + PostgreSQL Integration: Connects to a PostgreSQL database to fetch supplementary user information.
 + Data Enrichment Logic: Processes incoming data by merging it with relevant database records.
 + Kafka Producer: Publishes the enriched data to an output Kafka topic for further processing.
+
   The application employs a modular architecture, making it easy to extend and maintain. It utilizes environment variables for configuration, facilitating deployment across different environments. This service demonstrates proficiency in working with Kafka, PostgreSQL, and Go, showcasing effective patterns for building data-driven applications.
 
